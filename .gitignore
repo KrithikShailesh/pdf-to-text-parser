@@ -1,0 +1,45 @@
+# Ignore Python cache and compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ignore the virtual environment
+newenv/
+
+# Ignore logs and database files
+*.log
+*.sqlite3
+instance/
+db.sqlite3
+
+# Ignore uploaded files
+uploads/
+*.pdf
+*.docx
+
+# Ignore VS Code settings
+.vscode/
+
+# Ignore system files (MacOS & Linux)
+.DS_Store
+*.swp
+*.swo
+
+# Ignore Node.js dependencies (if applicable)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Ignore Python dependency files
+Pipfile
+Pipfile.lock
+requirements.txt
+
+# Ignore Cloud Run & Docker files
+.Dockerfile
+.dockerignore
+.cloudignore
+
+# Ignore Google Cloud credentials & configs
+gcloud-config/
+*.json
