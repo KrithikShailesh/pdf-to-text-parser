@@ -16,8 +16,8 @@ def parse_resume_endpoint():
         return jsonify({"error": "No file selected"}), 400
 
     # Save uploaded file
-    file_path = os.path.join("uploads", file.filename)
-    os.makedirs("uploads", exist_ok=True)
+    file_path = os.path.join("/tmp", file.filename)
+    os.makedirs("/tmp", exist_ok=True)
     file.save(file_path)
 
     try:
@@ -38,4 +38,5 @@ def parse_resume_endpoint():
     return jsonify({"text": resume_text})
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host="0.0.0.0", port=port)
