@@ -33,7 +33,6 @@ yarn-error.log
 # Ignore Python dependency files
 Pipfile
 Pipfile.lock
-requirements.txt
 
 # Ignore Cloud Run & Docker files
 .Dockerfile
