@@ -5,13 +5,17 @@ from dotenv import load_dotenv
 import os
 from werkzeug.utils import secure_filename
 
+import jwt
+
 load_dotenv()
 
-SHARED_SECRET = os.getenv('SHARED_SECRET')
+# SHARED_SECRET = os.getenv('SHARED_SECRET')
+JWT_SECRET = os.getenv('JWT_SECRET')
 ALLOWED_ORIGINS = os.getenv('ALLOWED_ORIGINS', '*')
+ALLOWED_ORIGINS_LIST = ALLOWED_ORIGINS.split(",") if ALLOWED_ORIGINS != "*" else ["*"]
 
-if not SHARED_SECRET:
-    raise ValueError("No SHARED_SECRET set for Flask application. Security risk.")
+if not JWT_SECRET:
+    raise ValueError("No JWT_SECRET set for Flask application. Security risk.")
 
 app = Flask(__name__)
 # Enable CORS with specific origins if provided, otherwise allow all (default)
@@ -20,16 +24,33 @@ CORS(app, resources={r"/parse": {"origins": ALLOWED_ORIGINS.split(",") if ALLOWE
 # Set maximum file size to 16MB
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
-def require_secret_key(view_function):
+def require_auth(view_function):
     def wrapper(*args, **kwargs):
-        # Check if the request contains the correct secret key in the headers
-        if request.headers.get('X-Secret-Key') != SHARED_SECRET:
-            abort(401, description="Unauthorized: Invalid secret key")
+        # Strict Origin Check
+        if ALLOWED_ORIGINS_LIST != ["*"]:
+            origin = request.headers.get('Origin')
+            if not origin or origin not in ALLOWED_ORIGINS_LIST:
+                abort(403, description="Forbidden")
+
+        # JWT Verification
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith("Bearer "):
+             abort(401, description="Unauthorized")
+        
+        token = auth_header.split(" ")[1]
+        try:
+            # Verify the token using the secret and HS256 algorithm
+            jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        except jwt.ExpiredSignatureError:
+            abort(401, description="Unauthorized: Token has expired")
+        except jwt.InvalidTokenError:
+            abort(401, description="Unauthorized: Invalid token")
+
         return view_function(*args, **kwargs)
     return wrapper
 
 @app.route("/parse", methods=["POST"])
-@require_secret_key
+@require_auth
 def parse_resume_endpoint():
     if "file" not in request.files:
         return jsonify({"error": "No file uploaded"}), 400
