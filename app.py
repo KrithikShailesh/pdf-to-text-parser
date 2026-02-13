@@ -3,13 +3,22 @@ from flask_cors import CORS
 from resume_parser import extract_text_from_pdf
 from dotenv import load_dotenv
 import os
+from werkzeug.utils import secure_filename
 
 load_dotenv()
 
 SHARED_SECRET = os.getenv('SHARED_SECRET')
+ALLOWED_ORIGINS = os.getenv('ALLOWED_ORIGINS', '*')
+
+if not SHARED_SECRET:
+    raise ValueError("No SHARED_SECRET set for Flask application. Security risk.")
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+# Enable CORS with specific origins if provided, otherwise allow all (default)
+CORS(app, resources={r"/parse": {"origins": ALLOWED_ORIGINS.split(",") if ALLOWED_ORIGINS != "*" else "*"}})
+
+# Set maximum file size to 16MB
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 def require_secret_key(view_function):
     def wrapper(*args, **kwargs):
@@ -30,7 +39,8 @@ def parse_resume_endpoint():
         return jsonify({"error": "No file selected"}), 400
 
     # Save uploaded file
-    file_path = os.path.join("/tmp", file.filename)
+    filename = secure_filename(file.filename)
+    file_path = os.path.join("/tmp", filename)
     os.makedirs("/tmp", exist_ok=True)
     file.save(file_path)
 
