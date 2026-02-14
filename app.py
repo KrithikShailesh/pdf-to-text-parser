@@ -12,7 +12,7 @@ load_dotenv()
 SHARED_SECRET = os.getenv('SHARED_SECRET')
 JWT_SECRET = os.getenv('JWT_SECRET')
 ALLOWED_ORIGINS = os.getenv('ALLOWED_ORIGINS', '*')
-ALLOWED_ORIGINS_LIST = ALLOWED_ORIGINS.split(",") if ALLOWED_ORIGINS != "*" else ["*"]
+ALLOWED_ORIGINS_LIST = [origin.strip().rstrip("/") for origin in ALLOWED_ORIGINS.split(",")] if ALLOWED_ORIGINS != "*" else ["*"]
 
 if not SHARED_SECRET:
     raise ValueError("No SHARED_SECRET set for Flask application. Security risk.")
@@ -31,6 +31,9 @@ def require_auth(view_function):
         # Strict Origin Check
         if ALLOWED_ORIGINS_LIST != ["*"]:
             origin = request.headers.get('Origin')
+            if origin:
+                origin = origin.rstrip("/")  # Normalize incoming origin
+            
             if not origin or origin not in ALLOWED_ORIGINS_LIST:
                 abort(403, description="Forbidden")
 
