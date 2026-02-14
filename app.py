@@ -28,14 +28,6 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 def require_auth(view_function):
     def wrapper(*args, **kwargs):
-        # Strict Origin Check
-        if ALLOWED_ORIGINS_LIST != ["*"]:
-            origin = request.headers.get('Origin')
-            if origin:
-                origin = origin.rstrip("/")  # Normalize incoming origin
-            
-            if not origin or origin not in ALLOWED_ORIGINS_LIST:
-                abort(403, description="Forbidden")
 
         # 1. Shared Secret Verification
         if request.headers.get('X-Secret-Key') != SHARED_SECRET:
