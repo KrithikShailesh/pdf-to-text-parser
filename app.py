@@ -35,7 +35,7 @@ def require_auth(view_function):
         # JWT Verification
         auth_header = request.headers.get('Authorization')
         if not auth_header or not auth_header.startswith("Bearer "):
-             abort(401, description="Unauthorized")
+             abort(401, description="Unauthorized, token invalid")
         
         token = auth_header.split(" ")[1]
         try:
