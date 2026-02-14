@@ -9,11 +9,13 @@ import jwt
 
 load_dotenv()
 
-# SHARED_SECRET = os.getenv('SHARED_SECRET')
+SHARED_SECRET = os.getenv('SHARED_SECRET')
 JWT_SECRET = os.getenv('JWT_SECRET')
 ALLOWED_ORIGINS = os.getenv('ALLOWED_ORIGINS', '*')
 ALLOWED_ORIGINS_LIST = ALLOWED_ORIGINS.split(",") if ALLOWED_ORIGINS != "*" else ["*"]
 
+if not SHARED_SECRET:
+    raise ValueError("No SHARED_SECRET set for Flask application. Security risk.")
 if not JWT_SECRET:
     raise ValueError("No JWT_SECRET set for Flask application. Security risk.")
 
@@ -32,10 +34,14 @@ def require_auth(view_function):
             if not origin or origin not in ALLOWED_ORIGINS_LIST:
                 abort(403, description="Forbidden")
 
-        # JWT Verification
+        # 1. Shared Secret Verification
+        if request.headers.get('X-Secret-Key') != SHARED_SECRET:
+            abort(401, description="Unauthorized: Invalid key")
+
+        # 2. JWT Verification
         auth_header = request.headers.get('Authorization')
         if not auth_header or not auth_header.startswith("Bearer "):
-             abort(401, description="Unauthorized, token invalid")
+             abort(401, description="Unauthorized: Invalid token")
         
         token = auth_header.split(" ")[1]
         try:
